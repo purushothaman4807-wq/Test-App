@@ -67,31 +67,14 @@ st.markdown("""
         box-shadow: 0 0 10px #00e5ff;
         transform: scale(1.03);
     }
-    .shift-btn {
-        background: #ffcb05 !important;
-        color: black !important;
-        font-weight: bold;
-    }
-    .alpha-btn {
-        background: #ff4b5c !important;
-        color: white !important;
-        font-weight: bold;
-    }
-    .equal-btn {
-        background: #00e676 !important;
-        color: black !important;
-        font-weight: bold;
-    }
-    .brand-footer {
-        text-align: center;
-        margin-top: 15px;
-        font-size: 13px;
-        color: #aaa;
-    }
+    .shift-btn {background: #ffcb05 !important;color: black !important;font-weight: bold;}
+    .alpha-btn {background: #ff4b5c !important;color: white !important;font-weight: bold;}
+    .equal-btn {background: #00e676 !important;color: black !important;font-weight: bold;}
+    .brand-footer {text-align: center;margin-top: 15px;font-size: 13px;color: #aaa;}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- INITIAL STATE ----------
+# ---------- STATE ----------
 if "exp" not in st.session_state:
     st.session_state.exp = ""
 if "result" not in st.session_state:
@@ -102,28 +85,15 @@ st.markdown("<div class='calc-container'>", unsafe_allow_html=True)
 st.markdown("<div class='casio-label'>CASIO</div>", unsafe_allow_html=True)
 st.markdown("<div class='model-label'>fx-991EX | Scientific Calculator</div>", unsafe_allow_html=True)
 
-# ---------- DISPLAY PANEL ----------
-display_html = f"""
-<div class='display-area' id='display'>
+st.markdown(f"""
+<div class='display-area'>
     {st.session_state.exp or '&nbsp;'}<br>
     <span style='font-size:18px;color:#00ffaa;'>{st.session_state.result or ''}</span>
 </div>
-"""
-st.markdown(display_html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# ---------- BUTTON MATRIX ----------
-buttons = [
-    ["SHIFT", "ALPHA", "MODE", "DEL", "AC"],
-    ["sin", "cos", "tan", "ln", "log"],
-    ["√", "^", "(", ")", "/"],
-    ["7", "8", "9", "*", "π"],
-    ["4", "5", "6", "-", "e"],
-    ["1", "2", "3", "+", "!"],
-    ["0", ".", "Ans", "EXP", "="],
-]
-
+# ---------- EVALUATION ----------
 def evaluate_expression(exp):
-    """Perform arithmetic + scientific evaluation safely"""
     try:
         exp = exp.replace("π", str(math.pi))
         exp = exp.replace("e", str(math.e))
@@ -147,37 +117,46 @@ def evaluate_expression(exp):
     except:
         return "Error"
 
-# ---------- GRID BUTTONS ----------
+# ---------- BUTTON GRID ----------
+buttons = [
+    ["SHIFT", "ALPHA", "MODE", "DEL", "AC"],
+    ["sin", "cos", "tan", "ln", "log"],
+    ["√", "^", "(", ")", "/"],
+    ["7", "8", "9", "*", "π"],
+    ["4", "5", "6", "-", "e"],
+    ["1", "2", "3", "+", "!"],
+    ["0", ".", "Ans", "EXP", "="],
+]
+
+# ---------- BUTTON ACTION ----------
+clicked = None
 for row in buttons:
     cols = st.columns(len(row))
     for i, btn in enumerate(row):
-        if btn == "SHIFT":
-            css = "shift-btn"
-        elif btn == "ALPHA":
-            css = "alpha-btn"
-        elif btn == "=":
-            css = "equal-btn"
-        else:
-            css = ""
+        css = ""
+        if btn == "SHIFT": css = "shift-btn"
+        elif btn == "ALPHA": css = "alpha-btn"
+        elif btn == "=": css = "equal-btn"
 
-        # Each button updates session_state instantly
         if cols[i].button(btn, key=f"{btn}-{i}"):
-            if btn == "AC":
-                st.session_state.exp = ""
-                st.session_state.result = ""
-            elif btn == "DEL":
-                st.session_state.exp = st.session_state.exp[:-1]
-            elif btn == "=":
-                st.session_state.result = str(evaluate_expression(st.session_state.exp))
-            elif btn == "Ans":
-                if st.session_state.result:
-                    st.session_state.exp += st.session_state.result
-            else:
-                st.session_state.exp += btn
+            clicked = btn
 
-            # Instantly refresh display (no lag)
-            st.experimental_rerun()
+# ---------- HANDLE ACTION ----------
+if clicked:
+    if clicked == "AC":
+        st.session_state.exp = ""
+        st.session_state.result = ""
+    elif clicked == "DEL":
+        st.session_state.exp = st.session_state.exp[:-1]
+    elif clicked == "=":
+        st.session_state.result = str(evaluate_expression(st.session_state.exp))
+    elif clicked == "Ans":
+        if st.session_state.result:
+            st.session_state.exp += st.session_state.result
+    else:
+        st.session_state.exp += clicked
+    st.rerun()  # safe re-run only once after update
 
 # ---------- FOOTER ----------
-st.markdown("<div class='brand-footer'>🧮 Casio fx-991EX Simulator | Smooth & Instant</div>", unsafe_allow_html=True)
+st.markdown("<div class='brand-footer'>🧮 Casio fx-991EX Simulator | Built with ❤️ using Streamlit</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
