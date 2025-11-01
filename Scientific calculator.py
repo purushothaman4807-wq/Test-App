@@ -122,7 +122,7 @@ buttons = [
 ]
 
 def evaluate_expression(exp):
-    """Safe math evaluator."""
+    """Safe math evaluator with full arithmetic + scientific functions."""
     try:
         exp = exp.replace("π", str(math.pi))
         exp = exp.replace("e", str(math.e))
@@ -133,11 +133,18 @@ def evaluate_expression(exp):
         exp = exp.replace("sin", "math.sin")
         exp = exp.replace("cos", "math.cos")
         exp = exp.replace("tan", "math.tan")
+        exp = exp.replace("×", "*").replace("÷", "/")
+
+        # Handle factorial (!)
         if "!" in exp:
             parts = exp.split("!")
             exp = str(math.factorial(int(eval(parts[0]))))
-        result = eval(exp)
+
+        # Evaluate with math functions
+        result = eval(exp, {"__builtins__": None}, {"math": math})
         return round(result, 10)
+    except ZeroDivisionError:
+        return "Cannot divide by 0"
     except:
         return "Error"
 
