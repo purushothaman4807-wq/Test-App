@@ -1,10 +1,10 @@
 import streamlit as st
 import math
 
-# ---------- PAGE SETUP ----------
-st.set_page_config(page_title="Casio fx-991EX Simulator", page_icon="🧮", layout="centered")
+# ---------- PAGE CONFIG ----------
+st.set_page_config(page_title="Casio fx-991EX", page_icon="🧮", layout="centered")
 
-# ---------- CUSTOM STYLING ----------
+# ---------- STYLE ----------
 st.markdown("""
 <style>
     .main {
@@ -59,13 +59,13 @@ st.markdown("""
         font-size: 18px;
         margin: 3px;
         box-shadow: 2px 2px 6px #00000080, inset -1px -1px 4px #555;
-        transition: 0.2s;
+        transition: 0.1s;
     }
     .stButton>button:hover {
         background: #00bcd4;
         color: black;
         box-shadow: 0 0 10px #00e5ff;
-        transform: scale(1.05);
+        transform: scale(1.03);
     }
     .shift-btn {
         background: #ffcb05 !important;
@@ -91,26 +91,27 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- BODY ----------
-st.markdown("<div class='calc-container'>", unsafe_allow_html=True)
-st.markdown("<div class='casio-label'>CASIO</div>", unsafe_allow_html=True)
-st.markdown("<div class='model-label'>fx-991EX | Scientific Calculator</div>", unsafe_allow_html=True)
-
-# ---------- STATE ----------
+# ---------- INITIAL STATE ----------
 if "exp" not in st.session_state:
     st.session_state.exp = ""
 if "result" not in st.session_state:
     st.session_state.result = ""
 
 # ---------- DISPLAY ----------
-st.markdown(f"""
-<div class='display-area'>
+st.markdown("<div class='calc-container'>", unsafe_allow_html=True)
+st.markdown("<div class='casio-label'>CASIO</div>", unsafe_allow_html=True)
+st.markdown("<div class='model-label'>fx-991EX | Scientific Calculator</div>", unsafe_allow_html=True)
+
+# ---------- DISPLAY PANEL ----------
+display_html = f"""
+<div class='display-area' id='display'>
     {st.session_state.exp or '&nbsp;'}<br>
     <span style='font-size:18px;color:#00ffaa;'>{st.session_state.result or ''}</span>
 </div>
-""", unsafe_allow_html=True)
+"""
+st.markdown(display_html, unsafe_allow_html=True)
 
-# ---------- BUTTON LAYOUT ----------
+# ---------- BUTTON MATRIX ----------
 buttons = [
     ["SHIFT", "ALPHA", "MODE", "DEL", "AC"],
     ["sin", "cos", "tan", "ln", "log"],
@@ -122,7 +123,7 @@ buttons = [
 ]
 
 def evaluate_expression(exp):
-    """Safe math evaluator with full arithmetic + scientific functions."""
+    """Perform arithmetic + scientific evaluation safely"""
     try:
         exp = exp.replace("π", str(math.pi))
         exp = exp.replace("e", str(math.e))
@@ -135,12 +136,10 @@ def evaluate_expression(exp):
         exp = exp.replace("tan", "math.tan")
         exp = exp.replace("×", "*").replace("÷", "/")
 
-        # Handle factorial (!)
         if "!" in exp:
             parts = exp.split("!")
             exp = str(math.factorial(int(eval(parts[0]))))
 
-        # Evaluate with math functions
         result = eval(exp, {"__builtins__": None}, {"math": math})
         return round(result, 10)
     except ZeroDivisionError:
@@ -148,11 +147,10 @@ def evaluate_expression(exp):
     except:
         return "Error"
 
-# ---------- BUTTON ACTIONS ----------
+# ---------- GRID BUTTONS ----------
 for row in buttons:
     cols = st.columns(len(row))
     for i, btn in enumerate(row):
-        # Assign color themes
         if btn == "SHIFT":
             css = "shift-btn"
         elif btn == "ALPHA":
@@ -162,6 +160,7 @@ for row in buttons:
         else:
             css = ""
 
+        # Each button updates session_state instantly
         if cols[i].button(btn, key=f"{btn}-{i}"):
             if btn == "AC":
                 st.session_state.exp = ""
@@ -176,6 +175,9 @@ for row in buttons:
             else:
                 st.session_state.exp += btn
 
+            # Instantly refresh display (no lag)
+            st.experimental_rerun()
+
 # ---------- FOOTER ----------
-st.markdown("<div class='brand-footer'>🧮 Casio fx-991EX Simulator | Built with ❤️ using Streamlit</div>", unsafe_allow_html=True)
+st.markdown("<div class='brand-footer'>🧮 Casio fx-991EX Simulator | Smooth & Instant</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
